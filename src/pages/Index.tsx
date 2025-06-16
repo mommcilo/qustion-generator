@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,10 +12,18 @@ import { toast } from '@/components/ui/use-toast';
 const Index = () => {
   const [inputText, setInputText] = useState('');
   const [includeAnswers, setIncludeAnswers] = useState(false);
+  const [takeQuiz, setTakeQuiz] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState('English');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedQuestions, setGeneratedQuestions] = useState('');
   const [hasCopied, setHasCopied] = useState(false);
+
+  const handleTakeQuizChange = (checked: boolean) => {
+    setTakeQuiz(checked);
+    if (checked) {
+      setIncludeAnswers(false);
+    }
+  };
 
   const handleGenerate = async () => {
     if (!inputText.trim()) {
@@ -30,6 +39,7 @@ const Index = () => {
     setGeneratedQuestions('');
     console.log('Generating questions for:', inputText);
     console.log('Include answers:', includeAnswers);
+    console.log('Take quiz:', takeQuiz);
     console.log('Selected language:', selectedLanguage);
     
     try {
@@ -46,7 +56,7 @@ const Index = () => {
         setGeneratedQuestions(data.questions);
         toast({
           title: "Success!",
-          description: `Questions${includeAnswers ? ' with answers' : ''} generated successfully in ${selectedLanguage}!`,
+          description: `Questions${includeAnswers ? ' with answers' : ''}${takeQuiz ? ' for quiz' : ''} generated successfully in ${selectedLanguage}!`,
         });
       } else {
         throw new Error('No questions generated');
@@ -126,10 +136,25 @@ const Index = () => {
                     <Checkbox
                       id="include-answers"
                       checked={includeAnswers}
+                      disabled={takeQuiz}
                       onCheckedChange={(checked) => setIncludeAnswers(checked === true)}
                     />
-                    <Label htmlFor="include-answers" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    <Label 
+                      htmlFor="include-answers" 
+                      className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${takeQuiz ? 'opacity-50' : ''}`}
+                    >
                       Include answers with questions
+                    </Label>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="take-quiz"
+                      checked={takeQuiz}
+                      onCheckedChange={(checked) => handleTakeQuizChange(checked === true)}
+                    />
+                    <Label htmlFor="take-quiz" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      Take a quiz
                     </Label>
                   </div>
                   
