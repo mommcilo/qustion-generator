@@ -44,7 +44,7 @@ const Index = () => {
     
     try {
       const { data, error } = await supabase.functions.invoke('generate-questions', {
-        body: { text: inputText, includeAnswers, language: selectedLanguage }
+        body: { text: inputText, includeAnswers, takeQuiz, language: selectedLanguage }
       });
 
       if (error) {
