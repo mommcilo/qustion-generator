@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -111,7 +112,7 @@ const Index = () => {
             </h1>
           </div>
           <p className="text-gray-600 mt-2 ml-13">
-            AI-powered question generator
+            Generate. Quiz. Repeat.
           </p>
         </div>
       </header>
