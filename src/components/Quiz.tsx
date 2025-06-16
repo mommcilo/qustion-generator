@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -15,9 +14,10 @@ interface QuizQuestion {
 
 interface QuizProps {
   quizText: string;
+  onRegenerateQuiz: () => void;
 }
 
-const Quiz: React.FC<QuizProps> = ({ quizText }) => {
+const Quiz: React.FC<QuizProps> = ({ quizText, onRegenerateQuiz }) => {
   const [userAnswers, setUserAnswers] = useState<{ [key: number]: number }>({});
   const [showResults, setShowResults] = useState(false);
 
@@ -113,6 +113,12 @@ const Quiz: React.FC<QuizProps> = ({ quizText }) => {
     return correct;
   };
 
+  const handleTakeQuizAgain = () => {
+    setShowResults(false);
+    setUserAnswers({});
+    onRegenerateQuiz();
+  };
+
   const score = calculateScore();
   const totalQuestions = questions.length;
   const allQuestionsAnswered = Object.keys(userAnswers).length === totalQuestions;
@@ -147,7 +153,7 @@ const Quiz: React.FC<QuizProps> = ({ quizText }) => {
                'Keep studying and try again! 💪'}
             </p>
             <Button 
-              onClick={() => { setShowResults(false); setUserAnswers({}); }}
+              onClick={handleTakeQuizAgain}
               className="mt-4"
             >
               Take Quiz Again
