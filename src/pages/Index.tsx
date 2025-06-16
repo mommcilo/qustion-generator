@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -139,22 +138,47 @@ const Index = () => {
                       Language:
                     </Label>
                     <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-                      <SelectTrigger className="w-[180px]">
+                      <SelectTrigger className="w-[220px]">
                         <SelectValue placeholder="Select language" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="English">English</SelectItem>
-                        <SelectItem value="Spanish">Spanish</SelectItem>
-                        <SelectItem value="French">French</SelectItem>
-                        <SelectItem value="German">German</SelectItem>
-                        <SelectItem value="Italian">Italian</SelectItem>
-                        <SelectItem value="Portuguese">Portuguese</SelectItem>
-                        <SelectItem value="Chinese">Chinese</SelectItem>
-                        <SelectItem value="Japanese">Japanese</SelectItem>
-                        <SelectItem value="Korean">Korean</SelectItem>
-                        <SelectItem value="Arabic">Arabic</SelectItem>
-                        <SelectItem value="Russian">Russian</SelectItem>
-                        <SelectItem value="Dutch">Dutch</SelectItem>
+                        <SelectItem value="English">🇬🇧 English</SelectItem>
+                        <SelectItem value="Spanish">🇪🇸 Spanish</SelectItem>
+                        <SelectItem value="French">🇫🇷 French</SelectItem>
+                        <SelectItem value="German">🇩🇪 German</SelectItem>
+                        <SelectItem value="Italian">🇮🇹 Italian</SelectItem>
+                        <SelectItem value="Portuguese">🇵🇹 Portuguese</SelectItem>
+                        <SelectItem value="Dutch">🇳🇱 Dutch</SelectItem>
+                        <SelectItem value="Russian">🇷🇺 Russian</SelectItem>
+                        <SelectItem value="Polish">🇵🇱 Polish</SelectItem>
+                        <SelectItem value="Czech">🇨🇿 Czech</SelectItem>
+                        <SelectItem value="Slovak">🇸🇰 Slovak</SelectItem>
+                        <SelectItem value="Hungarian">🇭🇺 Hungarian</SelectItem>
+                        <SelectItem value="Romanian">🇷🇴 Romanian</SelectItem>
+                        <SelectItem value="Bulgarian">🇧🇬 Bulgarian</SelectItem>
+                        <SelectItem value="Croatian">🇭🇷 Croatian</SelectItem>
+                        <SelectItem value="Serbian">🇷🇸 Serbian</SelectItem>
+                        <SelectItem value="Macedonian">🇲🇰 Macedonian</SelectItem>
+                        <SelectItem value="Slovenian">🇸🇮 Slovenian</SelectItem>
+                        <SelectItem value="Greek">🇬🇷 Greek</SelectItem>
+                        <SelectItem value="Albanian">🇦🇱 Albanian</SelectItem>
+                        <SelectItem value="Bosnian">🇧🇦 Bosnian</SelectItem>
+                        <SelectItem value="Montenegrin">🇲🇪 Montenegrin</SelectItem>
+                        <SelectItem value="Swedish">🇸🇪 Swedish</SelectItem>
+                        <SelectItem value="Norwegian">🇳🇴 Norwegian</SelectItem>
+                        <SelectItem value="Danish">🇩🇰 Danish</SelectItem>
+                        <SelectItem value="Finnish">🇫🇮 Finnish</SelectItem>
+                        <SelectItem value="Estonian">🇪🇪 Estonian</SelectItem>
+                        <SelectItem value="Latvian">🇱🇻 Latvian</SelectItem>
+                        <SelectItem value="Lithuanian">🇱🇹 Lithuanian</SelectItem>
+                        <SelectItem value="Ukrainian">🇺🇦 Ukrainian</SelectItem>
+                        <SelectItem value="Belarusian">🇧🇾 Belarusian</SelectItem>
+                        <SelectItem value="Moldovan">🇲🇩 Moldovan</SelectItem>
+                        <SelectItem value="Turkish">🇹🇷 Turkish</SelectItem>
+                        <SelectItem value="Chinese">🇨🇳 Chinese</SelectItem>
+                        <SelectItem value="Japanese">🇯🇵 Japanese</SelectItem>
+                        <SelectItem value="Korean">🇰🇷 Korean</SelectItem>
+                        <SelectItem value="Arabic">🇸🇦 Arabic</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
