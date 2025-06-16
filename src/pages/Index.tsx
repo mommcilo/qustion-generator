@@ -276,7 +276,7 @@ const Index = () => {
           {/* Footer Info */}
           <div className="text-center mt-8 text-gray-500 text-sm">
             <p>
-              Powered by AI • Enter any text to get started
+              Created with AI for the people • Enter any text to get started
             </p>
           </div>
         </div>
