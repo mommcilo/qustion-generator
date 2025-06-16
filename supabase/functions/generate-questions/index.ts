@@ -16,7 +16,7 @@ serve(async (req) => {
   }
 
   try {
-    const { text, includeAnswers, takeQuiz, language = 'English' } = await req.json();
+    const { text, includeAnswers, takeQuiz, language = 'English', difficulty = 'intermediate' } = await req.json();
 
     if (!text || text.trim().length === 0) {
       return new Response(JSON.stringify({ error: 'No text provided' }), {
@@ -29,8 +29,9 @@ serve(async (req) => {
     console.log('Include answers:', includeAnswers);
     console.log('Take quiz:', takeQuiz);
     console.log('Language:', language);
+    console.log('Difficulty:', difficulty);
 
-    const basePrompt = `Write 10 interesting questions from topic: {replaceWithUserInput} Question should be diverse, useful for quiz or discussion.`;
+    const basePrompt = `Write 10 ${difficulty} questions from topic: {replaceWithUserInput} Question should be diverse, useful for quiz or discussion.`;
     const answersPrompt = includeAnswers ? ` Please also answer on every question.` : '';
     const quizPrompt = takeQuiz ? ` For every question return 4 answers where first is correct.` : '';
     const languagePrompt = language !== 'English' ? ` Please generate text on ${language}` : '';

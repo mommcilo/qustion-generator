@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,6 +14,7 @@ const Index = () => {
   const [includeAnswers, setIncludeAnswers] = useState(false);
   const [takeQuiz, setTakeQuiz] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState('English');
+  const [difficultyLevel, setDifficultyLevel] = useState('intermediate');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedQuestions, setGeneratedQuestions] = useState('');
   const [hasCopied, setHasCopied] = useState(false);
@@ -42,10 +42,11 @@ const Index = () => {
     console.log('Include answers:', includeAnswers);
     console.log('Take quiz:', takeQuiz);
     console.log('Selected language:', selectedLanguage);
+    console.log('Difficulty level:', difficultyLevel);
     
     try {
       const { data, error } = await supabase.functions.invoke('generate-questions', {
-        body: { text: inputText, includeAnswers, takeQuiz, language: selectedLanguage }
+        body: { text: inputText, includeAnswers, takeQuiz, language: selectedLanguage, difficulty: difficultyLevel }
       });
 
       if (error) {
@@ -57,7 +58,7 @@ const Index = () => {
         setGeneratedQuestions(data.questions);
         toast({
           title: "Success!",
-          description: `Questions${includeAnswers ? ' with answers' : ''}${takeQuiz ? ' for quiz' : ''} generated successfully in ${selectedLanguage}!`,
+          description: `${difficultyLevel.charAt(0).toUpperCase() + difficultyLevel.slice(1)} questions${includeAnswers ? ' with answers' : ''}${takeQuiz ? ' for quiz' : ''} generated successfully in ${selectedLanguage}!`,
         });
       } else {
         throw new Error('No questions generated');
@@ -157,6 +158,22 @@ const Index = () => {
                     <Label htmlFor="take-quiz" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                       Take a quiz
                     </Label>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Label htmlFor="difficulty-select" className="text-sm font-medium leading-none">
+                      Difficulty:
+                    </Label>
+                    <Select value={difficultyLevel} onValueChange={setDifficultyLevel}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Select difficulty" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="beginner">📝 Beginner</SelectItem>
+                        <SelectItem value="intermediate">⚡ Intermediate</SelectItem>
+                        <SelectItem value="hard">🔥 Hard</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   
                   <div className="flex items-center space-x-2">
