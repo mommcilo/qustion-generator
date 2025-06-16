@@ -2,23 +2,77 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Copy, CheckCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/use-toast';
 
 const Index = () => {
   const [inputText, setInputText] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedQuestions, setGeneratedQuestions] = useState('');
+  const [hasCopied, setHasCopied] = useState(false);
 
   const handleGenerate = async () => {
-    if (!inputText.trim()) return;
+    if (!inputText.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter some text to generate questions from.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsGenerating(true);
+    setGeneratedQuestions('');
     console.log('Generating questions for:', inputText);
     
-    // Simulate generation process
-    setTimeout(() => {
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-questions', {
+        body: { text: inputText }
+      });
+
+      if (error) {
+        console.error('Error calling function:', error);
+        throw error;
+      }
+
+      if (data?.questions) {
+        setGeneratedQuestions(data.questions);
+        toast({
+          title: "Success!",
+          description: "Questions generated successfully!",
+        });
+      } else {
+        throw new Error('No questions generated');
+      }
+    } catch (error) {
+      console.error('Error generating questions:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate questions. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsGenerating(false);
-      console.log('Questions generated successfully!');
-    }, 2000);
+    }
+  };
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(generatedQuestions);
+      setHasCopied(true);
+      toast({
+        title: "Copied!",
+        description: "Questions copied to clipboard.",
+      });
+      setTimeout(() => setHasCopied(false), 2000);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to copy to clipboard.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -77,6 +131,38 @@ const Index = () => {
                   )}
                 </Button>
               </div>
+
+              {/* Generated Questions Display */}
+              {generatedQuestions && (
+                <div className="mt-8 p-6 bg-gray-50 rounded-xl border border-gray-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-800">Generated Questions</h3>
+                    <Button
+                      onClick={handleCopy}
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-2"
+                    >
+                      {hasCopied ? (
+                        <>
+                          <CheckCircle className="w-4 h-4 text-green-600" />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-4 h-4" />
+                          Copy
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  <div className="prose prose-gray max-w-none">
+                    <pre className="whitespace-pre-wrap text-gray-700 font-sans text-base leading-relaxed">
+                      {generatedQuestions}
+                    </pre>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
