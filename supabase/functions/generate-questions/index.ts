@@ -38,12 +38,7 @@ serve(async (req) => {
         messages: [
           { 
             role: 'system', 
-            content: `You are an expert question generator. Your task is to analyze the provided text and generate thoughtful, relevant questions that test comprehension, critical thinking, and key concepts. 
-
-Generate 5-8 questions of varying difficulty levels:
-- 2-3 basic comprehension questions (What, Who, When, Where)
-- 2-3 analytical questions (How, Why, What if)
-- 1-2 critical thinking or application questions
+            content: `Write 10 interesting questions from topic: {replaceWithUserInput} Question should be diverse, useful for quiz or discussion.
 
 Format your response as a clean numbered list. Make sure questions are clear, specific, and directly related to the content provided.` 
           },
