@@ -2,12 +2,15 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { Sparkles, Copy, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 
 const Index = () => {
   const [inputText, setInputText] = useState('');
+  const [includeAnswers, setIncludeAnswers] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedQuestions, setGeneratedQuestions] = useState('');
   const [hasCopied, setHasCopied] = useState(false);
@@ -25,10 +28,11 @@ const Index = () => {
     setIsGenerating(true);
     setGeneratedQuestions('');
     console.log('Generating questions for:', inputText);
+    console.log('Include answers:', includeAnswers);
     
     try {
       const { data, error } = await supabase.functions.invoke('generate-questions', {
-        body: { text: inputText }
+        body: { text: inputText, includeAnswers }
       });
 
       if (error) {
@@ -40,7 +44,7 @@ const Index = () => {
         setGeneratedQuestions(data.questions);
         toast({
           title: "Success!",
-          description: "Questions generated successfully!",
+          description: `Questions${includeAnswers ? ' with answers' : ''} generated successfully!`,
         });
       } else {
         throw new Error('No questions generated');
@@ -111,6 +115,21 @@ const Index = () => {
                   className="min-h-[300px] resize-none text-base leading-relaxed border-2 border-gray-200 focus:border-blue-500 transition-colors rounded-xl"
                 />
               </div>
+
+              {/* Options Section */}
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <h3 className="text-md font-semibold text-gray-700 mb-3">Generation Options</h3>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="include-answers"
+                    checked={includeAnswers}
+                    onCheckedChange={setIncludeAnswers}
+                  />
+                  <Label htmlFor="include-answers" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    Include answers with questions
+                  </Label>
+                </div>
+              </div>
               
               <div className="flex justify-center">
                 <Button
@@ -136,7 +155,9 @@ const Index = () => {
               {generatedQuestions && (
                 <div className="mt-8 p-6 bg-gray-50 rounded-xl border border-gray-200">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-800">Generated Questions</h3>
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      Generated Questions{includeAnswers ? ' with Answers' : ''}
+                    </h3>
                     <Button
                       onClick={handleCopy}
                       variant="outline"
