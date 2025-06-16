@@ -31,13 +31,25 @@ serve(async (req) => {
     console.log('Language:', language);
     console.log('Difficulty:', difficulty);
 
-    const basePrompt = `Write 10 ${difficulty} questions about: {replaceWithUserInput}. Questions should be diverse, useful for quiz or discussion.`;
-    const answersPrompt = includeAnswers ? ` Please also answer every question.` : '';
-    const quizPrompt = takeQuiz ? ` For every question provide exactly 4 multiple choice answers (a, b, c, d) where the FIRST answer (a) is always the correct one. Make sure the correct answers are factually accurate and unambiguous. Avoid options like "Both a and c" or similar combinations.` : '';
+    // Dynamic prompt based on options
+    let basePrompt = `Write 10 ${difficulty} questions about: {replaceWithUserInput}. Questions should be diverse, useful for quiz or discussion.`;
+    
+    let answersPrompt = '';
+    let quizPrompt = '';
+    
+    if (takeQuiz) {
+      // For quiz mode: include multiple choice answers
+      quizPrompt = ` For every question provide exactly 4 multiple choice answers (a, b, c, d) where the FIRST answer (a) is always the correct one. Make sure the correct answers are factually accurate and unambiguous. Avoid options like "Both a and c" or similar combinations.`;
+    } else if (includeAnswers) {
+      // For regular questions with answers (not quiz)
+      answersPrompt = ` Please also answer every question with detailed explanations.`;
+    }
+    
     const languagePrompt = language !== 'English' ? ` Please generate text in ${language}` : '';
+    
     const systemContent = basePrompt + answersPrompt + quizPrompt + languagePrompt + `
 
-Format your response as a clean numbered list. Make sure questions are clear, specific, and directly related to the content provided. For quiz questions, ensure the correct answer (option a) is factually accurate and the other options are plausible but clearly incorrect.`;
+Format your response as a clean numbered list. Make sure questions are clear, specific, and directly related to the content provided.${takeQuiz ? ' For quiz questions, ensure the correct answer (option a) is factually accurate and the other options are plausible but clearly incorrect.' : ''}`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
