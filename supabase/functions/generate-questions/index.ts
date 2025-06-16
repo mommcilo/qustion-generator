@@ -16,7 +16,7 @@ serve(async (req) => {
   }
 
   try {
-    const { text, includeAnswers } = await req.json();
+    const { text, includeAnswers, language = 'English' } = await req.json();
 
     if (!text || text.trim().length === 0) {
       return new Response(JSON.stringify({ error: 'No text provided' }), {
@@ -27,10 +27,12 @@ serve(async (req) => {
 
     console.log('Generating questions for text:', text.substring(0, 100) + '...');
     console.log('Include answers:', includeAnswers);
+    console.log('Language:', language);
 
     const basePrompt = `Write 10 interesting questions from topic: {replaceWithUserInput} Question should be diverse, useful for quiz or discussion.`;
     const answersPrompt = includeAnswers ? ` Please also answer on every question.` : '';
-    const systemContent = basePrompt + answersPrompt + `
+    const languagePrompt = language !== 'English' ? ` Please generate text on ${language}` : '';
+    const systemContent = basePrompt + answersPrompt + languagePrompt + `
 
 Format your response as a clean numbered list. Make sure questions are clear, specific, and directly related to the content provided.`;
 

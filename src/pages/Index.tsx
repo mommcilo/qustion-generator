@@ -1,8 +1,10 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sparkles, Copy, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
@@ -10,6 +12,7 @@ import { toast } from '@/components/ui/use-toast';
 const Index = () => {
   const [inputText, setInputText] = useState('');
   const [includeAnswers, setIncludeAnswers] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState('English');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedQuestions, setGeneratedQuestions] = useState('');
   const [hasCopied, setHasCopied] = useState(false);
@@ -28,10 +31,11 @@ const Index = () => {
     setGeneratedQuestions('');
     console.log('Generating questions for:', inputText);
     console.log('Include answers:', includeAnswers);
+    console.log('Selected language:', selectedLanguage);
     
     try {
       const { data, error } = await supabase.functions.invoke('generate-questions', {
-        body: { text: inputText, includeAnswers }
+        body: { text: inputText, includeAnswers, language: selectedLanguage }
       });
 
       if (error) {
@@ -43,7 +47,7 @@ const Index = () => {
         setGeneratedQuestions(data.questions);
         toast({
           title: "Success!",
-          description: `Questions${includeAnswers ? ' with answers' : ''} generated successfully!`,
+          description: `Questions${includeAnswers ? ' with answers' : ''} generated successfully in ${selectedLanguage}!`,
         });
       } else {
         throw new Error('No questions generated');
@@ -118,15 +122,42 @@ const Index = () => {
               {/* Options Section */}
               <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                 <h3 className="text-md font-semibold text-gray-700 mb-3">Generation Options</h3>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="include-answers"
-                    checked={includeAnswers}
-                    onCheckedChange={(checked) => setIncludeAnswers(checked === true)}
-                  />
-                  <Label htmlFor="include-answers" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                    Include answers with questions
-                  </Label>
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="include-answers"
+                      checked={includeAnswers}
+                      onCheckedChange={(checked) => setIncludeAnswers(checked === true)}
+                    />
+                    <Label htmlFor="include-answers" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      Include answers with questions
+                    </Label>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Label htmlFor="language-select" className="text-sm font-medium leading-none">
+                      Language:
+                    </Label>
+                    <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Select language" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="English">English</SelectItem>
+                        <SelectItem value="Spanish">Spanish</SelectItem>
+                        <SelectItem value="French">French</SelectItem>
+                        <SelectItem value="German">German</SelectItem>
+                        <SelectItem value="Italian">Italian</SelectItem>
+                        <SelectItem value="Portuguese">Portuguese</SelectItem>
+                        <SelectItem value="Chinese">Chinese</SelectItem>
+                        <SelectItem value="Japanese">Japanese</SelectItem>
+                        <SelectItem value="Korean">Korean</SelectItem>
+                        <SelectItem value="Arabic">Arabic</SelectItem>
+                        <SelectItem value="Russian">Russian</SelectItem>
+                        <SelectItem value="Dutch">Dutch</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
               
