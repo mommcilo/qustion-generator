@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -123,7 +122,7 @@ const Index = () => {
                   <Checkbox
                     id="include-answers"
                     checked={includeAnswers}
-                    onCheckedChange={setIncludeAnswers}
+                    onCheckedChange={(checked) => setIncludeAnswers(checked === true)}
                   />
                   <Label htmlFor="include-answers" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                     Include answers with questions
