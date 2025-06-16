@@ -10,6 +10,7 @@ interface QuizQuestion {
   question: string;
   answers: string[];
   correctIndex: number;
+  originalCorrectAnswer: string;
 }
 
 interface QuizProps {
@@ -35,15 +36,26 @@ const Quiz: React.FC<QuizProps> = ({ quizText }) => {
       if (/^\d+\./.test(trimmedLine)) {
         // Save previous question if it exists
         if (currentQuestion && currentAnswers.length === 4) {
-          // Randomize answer positions
-          const correctAnswer = currentAnswers[0];
-          const shuffledAnswers = [...currentAnswers].sort(() => Math.random() - 0.5);
-          const newCorrectIndex = shuffledAnswers.indexOf(correctAnswer);
+          // Store the original correct answer (first one from AI)
+          const originalCorrectAnswer = currentAnswers[0];
+          
+          // Create a shuffled version with proper tracking
+          const answersWithIndices = currentAnswers.map((answer, index) => ({
+            answer,
+            originalIndex: index
+          }));
+          
+          // Shuffle the answers
+          const shuffledAnswers = [...answersWithIndices].sort(() => Math.random() - 0.5);
+          
+          // Find where the correct answer ended up
+          const newCorrectIndex = shuffledAnswers.findIndex(item => item.originalIndex === 0);
           
           parsedQuestions.push({
             question: currentQuestion,
-            answers: shuffledAnswers,
-            correctIndex: newCorrectIndex
+            answers: shuffledAnswers.map(item => item.answer),
+            correctIndex: newCorrectIndex,
+            originalCorrectAnswer
           });
         }
         
@@ -59,14 +71,21 @@ const Quiz: React.FC<QuizProps> = ({ quizText }) => {
     
     // Don't forget the last question
     if (currentQuestion && currentAnswers.length === 4) {
-      const correctAnswer = currentAnswers[0];
-      const shuffledAnswers = [...currentAnswers].sort(() => Math.random() - 0.5);
-      const newCorrectIndex = shuffledAnswers.indexOf(correctAnswer);
+      const originalCorrectAnswer = currentAnswers[0];
+      
+      const answersWithIndices = currentAnswers.map((answer, index) => ({
+        answer,
+        originalIndex: index
+      }));
+      
+      const shuffledAnswers = [...answersWithIndices].sort(() => Math.random() - 0.5);
+      const newCorrectIndex = shuffledAnswers.findIndex(item => item.originalIndex === 0);
       
       parsedQuestions.push({
         question: currentQuestion,
-        answers: shuffledAnswers,
-        correctIndex: newCorrectIndex
+        answers: shuffledAnswers.map(item => item.answer),
+        correctIndex: newCorrectIndex,
+        originalCorrectAnswer
       });
     }
     
@@ -155,11 +174,11 @@ const Quiz: React.FC<QuizProps> = ({ quizText }) => {
                     <div className="flex-1">
                       <p className="font-medium text-gray-800 mb-2">{question.question}</p>
                       <p className="text-sm text-gray-600">
-                        <span className="font-medium">Your answer:</span> {question.answers[userAnswer]}
+                        <span className="font-medium">Your answer:</span> {userAnswer !== undefined ? question.answers[userAnswer] : 'No answer selected'}
                       </p>
                       {!isCorrect && (
                         <p className="text-sm text-green-600">
-                          <span className="font-medium">Correct answer:</span> {question.answers[question.correctIndex]}
+                          <span className="font-medium">Correct answer:</span> {question.originalCorrectAnswer}
                         </p>
                       )}
                     </div>

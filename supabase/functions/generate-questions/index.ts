@@ -31,13 +31,13 @@ serve(async (req) => {
     console.log('Language:', language);
     console.log('Difficulty:', difficulty);
 
-    const basePrompt = `Write 10 ${difficulty} questions from topic: {replaceWithUserInput} Question should be diverse, useful for quiz or discussion.`;
-    const answersPrompt = includeAnswers ? ` Please also answer on every question.` : '';
-    const quizPrompt = takeQuiz ? ` For every question return 4 answers where first is correct.` : '';
-    const languagePrompt = language !== 'English' ? ` Please generate text on ${language}` : '';
+    const basePrompt = `Write 10 ${difficulty} questions about: {replaceWithUserInput}. Questions should be diverse, useful for quiz or discussion.`;
+    const answersPrompt = includeAnswers ? ` Please also answer every question.` : '';
+    const quizPrompt = takeQuiz ? ` For every question provide exactly 4 multiple choice answers (a, b, c, d) where the FIRST answer (a) is always the correct one. Make sure the correct answers are factually accurate and unambiguous. Avoid options like "Both a and c" or similar combinations.` : '';
+    const languagePrompt = language !== 'English' ? ` Please generate text in ${language}` : '';
     const systemContent = basePrompt + answersPrompt + quizPrompt + languagePrompt + `
 
-Format your response as a clean numbered list. Make sure questions are clear, specific, and directly related to the content provided.`;
+Format your response as a clean numbered list. Make sure questions are clear, specific, and directly related to the content provided. For quiz questions, ensure the correct answer (option a) is factually accurate and the other options are plausible but clearly incorrect.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
