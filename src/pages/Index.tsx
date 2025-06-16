@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Sparkles, Copy, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import Quiz from '@/components/Quiz';
 
 const Index = () => {
   const [inputText, setInputText] = useState('');
@@ -232,36 +233,42 @@ const Index = () => {
 
               {/* Generated Questions Display */}
               {generatedQuestions && (
-                <div className="mt-8 p-6 bg-gray-50 rounded-xl border border-gray-200">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-800">
-                      Generated Questions{includeAnswers ? ' with Answers' : ''}
-                    </h3>
-                    <Button
-                      onClick={handleCopy}
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-2"
-                    >
-                      {hasCopied ? (
-                        <>
-                          <CheckCircle className="w-4 h-4 text-green-600" />
-                          Copied!
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-4 h-4" />
-                          Copy
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                  <div className="prose prose-gray max-w-none">
-                    <pre className="whitespace-pre-wrap text-gray-700 font-sans text-base leading-relaxed">
-                      {generatedQuestions}
-                    </pre>
-                  </div>
-                </div>
+                <>
+                  {takeQuiz ? (
+                    <Quiz quizText={generatedQuestions} />
+                  ) : (
+                    <div className="mt-8 p-6 bg-gray-50 rounded-xl border border-gray-200">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-gray-800">
+                          Generated Questions{includeAnswers ? ' with Answers' : ''}
+                        </h3>
+                        <Button
+                          onClick={handleCopy}
+                          variant="outline"
+                          size="sm"
+                          className="flex items-center gap-2"
+                        >
+                          {hasCopied ? (
+                            <>
+                              <CheckCircle className="w-4 h-4 text-green-600" />
+                              Copied!
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-4 h-4" />
+                              Copy
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                      <div className="prose prose-gray max-w-none">
+                        <pre className="whitespace-pre-wrap text-gray-700 font-sans text-base leading-relaxed">
+                          {generatedQuestions}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
