@@ -36,17 +36,14 @@ serve(async (req) => {
       'beginner': {
         description: 'beginner level',
         instructions: 'Focus on basic facts, definitions, and simple concepts. Questions should test fundamental understanding and recall of key information. Use clear, simple language.',
-        wrongAnswers: 'Create wrong answers that are related to the topic but represent basic misconceptions or confused similar concepts.'
       },
       'intermediate': {
         description: 'intermediate level', 
         instructions: 'Focus on understanding relationships, applying concepts, and making connections. Questions should test comprehension and ability to use knowledge in context.',
-        wrongAnswers: 'Create wrong answers that show partial understanding but miss key details, or confuse related but distinct concepts.'
       },
       'hard': {
         description: 'advanced level',
         instructions: 'Focus on analysis, evaluation, synthesis, and critical thinking. Questions should test deep understanding, ability to compare/contrast, draw conclusions, and apply knowledge to new situations.',
-        wrongAnswers: 'Create sophisticated wrong answers that demonstrate common expert-level misconceptions or represent plausible but incorrect advanced interpretations.'
       }
     };
 
@@ -58,8 +55,7 @@ serve(async (req) => {
 CRITICAL QUALITY REQUIREMENTS:
 - Questions must be directly relevant to the provided content
 - Each question should test genuine understanding, not just memorization
-- Use clear, unambiguous language that has one definitive correct answer
-- Avoid trick questions or overly complex wording
+- Use clear, unambiguous language
 - Questions should cover different aspects and angles of the content
 - ${currentDifficulty.instructions}
 
@@ -78,38 +74,7 @@ Analyze the provided text thoroughly and create exactly 10 questions that:
 4. Focus on different parts of the content (beginning, middle, end)
 5. Include both broad concepts and specific facts`;
 
-    if (takeQuiz) {
-      systemPrompt += `
-
-QUIZ FORMAT WITH HIGH-QUALITY WRONG ANSWERS:
-- For each question, provide exactly 4 multiple choice options labeled a), b), c), d)
-- The FIRST option (a) must ALWAYS be the correct answer
-- CRITICAL: Wrong answers must be sophisticated and plausible
-
-WRONG ANSWER CREATION RULES:
-${currentDifficulty.wrongAnswers}
-
-SPECIFIC WRONG ANSWER STRATEGIES:
-- Use information that IS mentioned in the text but in a different context
-- Include common misconceptions someone might have about the topic
-- Mix correct elements with one key incorrect detail
-- Use terminology from the content but in wrong combinations
-- Reference related but distinct concepts that could be confused
-- Include numbers, dates, or facts that are close but not exact
-- NEVER use obviously silly or completely unrelated options
-- NEVER use "All of the above" or "None of the above"
-
-EXAMPLE OF GOOD VS BAD WRONG ANSWERS:
-❌ BAD: If the topic is about photosynthesis, don't use "Unicorns eat rainbows"
-✅ GOOD: If correct answer is "chloroplasts," wrong answers could be "mitochondria," "ribosomes," or "vacuoles"
-
-QUIZ FORMAT:
-1. [Specific, clear question testing understanding]
-a) [Correct answer - complete and accurate]
-b) [Plausible wrong answer using related concepts or common misconceptions]
-c) [Another sophisticated wrong answer that someone might reasonably choose]
-d) [Third wrong answer that demonstrates partial knowledge but key error]`;
-    } else if (includeAnswers) {
+    if (includeAnswers && !takeQuiz) {
       systemPrompt += `
 
 QUESTION + ANSWER FORMAT:
@@ -126,6 +91,7 @@ Answer: [Detailed explanation with context and supporting details]
 2. [Question about specific detail or application]
 Answer: [Comprehensive response with examples from the content]`;
     } else {
+      // For both "quiz" mode and "questions only" mode, use the same format
       systemPrompt += `
 
 QUESTION-ONLY FORMAT:
@@ -134,6 +100,7 @@ QUESTION-ONLY FORMAT:
 - Cover both main themes and important details
 - Use varied question structures and approaches
 - Ensure questions test genuine understanding at multiple levels
+- Questions should be suitable for open-ended answers where users can demonstrate their knowledge
 
 EXAMPLE FORMAT:
 1. [Question about main concept or theme]
@@ -153,9 +120,9 @@ LANGUAGE: Generate all content in ${language}. Ensure proper grammar, natural ph
 
 FINAL REMINDER: 
 - Quality over quantity - each question should be valuable for learning
-- Wrong answers (if applicable) must be sophisticated and require actual knowledge to eliminate
 - Vary your approach to create diverse, engaging questions that thoroughly test understanding
-- Focus on making questions that truly assess comprehension rather than lucky guessing`;
+- Focus on making questions that truly assess comprehension and knowledge depth
+- All questions should be answerable based on the provided content`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',

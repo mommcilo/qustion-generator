@@ -1,15 +1,15 @@
+
 import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, XCircle, Trophy } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/use-toast';
 
 interface QuizQuestion {
   question: string;
-  answers: string[];
-  correctIndex: number;
-  originalCorrectAnswer: string;
 }
 
 interface QuizProps {
@@ -17,113 +17,120 @@ interface QuizProps {
   onRegenerateQuiz: () => void;
 }
 
-const Quiz: React.FC<QuizProps> = ({ quizText, onRegenerateQuiz }) => {
-  const [userAnswers, setUserAnswers] = useState<{ [key: number]: number }>({});
-  const [showResults, setShowResults] = useState(false);
+interface EvaluationResult {
+  questionIndex: number;
+  userAnswer: string;
+  feedback: string;
+  isCorrect: boolean;
+  score: number;
+}
 
-  // Parse quiz text and randomize answer positions
+const Quiz: React.FC<QuizProps> = ({ quizText, onRegenerateQuiz }) => {
+  const [userAnswers, setUserAnswers] = useState<{ [key: number]: string }>({});
+  const [showResults, setShowResults] = useState(false);
+  const [evaluationResults, setEvaluationResults] = useState<EvaluationResult[]>([]);
+  const [isEvaluating, setIsEvaluating] = useState(false);
+
+  // Parse quiz text to extract questions
   const questions = useMemo(() => {
     const lines = quizText.split('\n').filter(line => line.trim());
     const parsedQuestions: QuizQuestion[] = [];
-    
-    let currentQuestion = '';
-    let currentAnswers: string[] = [];
     
     for (const line of lines) {
       const trimmedLine = line.trim();
       
       // Check if it's a question (starts with number)
       if (/^\d+\./.test(trimmedLine)) {
-        // Save previous question if it exists
-        if (currentQuestion && currentAnswers.length === 4) {
-          // Store the original correct answer (first one from AI)
-          const originalCorrectAnswer = currentAnswers[0];
-          
-          // Create a shuffled version with proper tracking
-          const answersWithIndices = currentAnswers.map((answer, index) => ({
-            answer,
-            originalIndex: index
-          }));
-          
-          // Shuffle the answers
-          const shuffledAnswers = [...answersWithIndices].sort(() => Math.random() - 0.5);
-          
-          // Find where the correct answer ended up
-          const newCorrectIndex = shuffledAnswers.findIndex(item => item.originalIndex === 0);
-          
-          parsedQuestions.push({
-            question: currentQuestion,
-            answers: shuffledAnswers.map(item => item.answer),
-            correctIndex: newCorrectIndex,
-            originalCorrectAnswer
-          });
-        }
-        
-        // Start new question
-        currentQuestion = trimmedLine;
-        currentAnswers = [];
-      } 
-      // Check if it's an answer (starts with letter and parenthesis)
-      else if (/^[a-d]\)/i.test(trimmedLine)) {
-        currentAnswers.push(trimmedLine.substring(2).trim());
+        parsedQuestions.push({
+          question: trimmedLine
+        });
       }
-    }
-    
-    // Don't forget the last question
-    if (currentQuestion && currentAnswers.length === 4) {
-      const originalCorrectAnswer = currentAnswers[0];
-      
-      const answersWithIndices = currentAnswers.map((answer, index) => ({
-        answer,
-        originalIndex: index
-      }));
-      
-      const shuffledAnswers = [...answersWithIndices].sort(() => Math.random() - 0.5);
-      const newCorrectIndex = shuffledAnswers.findIndex(item => item.originalIndex === 0);
-      
-      parsedQuestions.push({
-        question: currentQuestion,
-        answers: shuffledAnswers.map(item => item.answer),
-        correctIndex: newCorrectIndex,
-        originalCorrectAnswer
-      });
     }
     
     return parsedQuestions;
   }, [quizText]);
 
-  const handleAnswerChange = (questionIndex: number, answerIndex: number) => {
+  const handleAnswerChange = (questionIndex: number, answer: string) => {
     setUserAnswers(prev => ({
       ...prev,
-      [questionIndex]: answerIndex
+      [questionIndex]: answer
     }));
   };
 
-  const handleCheckScore = () => {
-    setShowResults(true);
-  };
+  const handleSubmitForEvaluation = async () => {
+    if (!allQuestionsAnswered) {
+      toast({
+        title: "Error",
+        description: "Please answer all questions before submitting.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-  const calculateScore = () => {
-    let correct = 0;
-    questions.forEach((question, index) => {
-      if (userAnswers[index] === question.correctIndex) {
-        correct++;
+    setIsEvaluating(true);
+    console.log('Evaluating quiz answers...');
+
+    try {
+      // Prepare the evaluation data
+      const evaluationData = {
+        originalText: quizText,
+        questionsAndAnswers: questions.map((question, index) => ({
+          question: question.question,
+          userAnswer: userAnswers[index] || ''
+        }))
+      };
+
+      const { data, error } = await supabase.functions.invoke('evaluate-quiz', {
+        body: evaluationData
+      });
+
+      if (error) {
+        console.error('Error calling evaluation function:', error);
+        throw error;
       }
-    });
-    return correct;
+
+      if (data?.results) {
+        setEvaluationResults(data.results);
+        setShowResults(true);
+        toast({
+          title: "Evaluation Complete!",
+          description: "Your quiz has been evaluated. Check your results below.",
+        });
+      } else {
+        throw new Error('No evaluation results received');
+      }
+    } catch (error) {
+      console.error('Error evaluating quiz:', error);
+      toast({
+        title: "Error",
+        description: "Failed to evaluate quiz. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsEvaluating(false);
+    }
   };
 
   const handleTakeQuizAgain = () => {
     setShowResults(false);
     setUserAnswers({});
+    setEvaluationResults([]);
     onRegenerateQuiz();
   };
 
-  const score = calculateScore();
   const totalQuestions = questions.length;
-  const allQuestionsAnswered = Object.keys(userAnswers).length === totalQuestions;
+  const allQuestionsAnswered = Object.keys(userAnswers).length === totalQuestions && 
+    Object.values(userAnswers).every(answer => answer.trim().length > 0);
+
+  const calculateScore = () => {
+    if (evaluationResults.length === 0) return 0;
+    const totalScore = evaluationResults.reduce((sum, result) => sum + result.score, 0);
+    return Math.round(totalScore / evaluationResults.length);
+  };
 
   if (showResults) {
+    const score = calculateScore();
+    
     return (
       <div className="mt-8 p-6 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl border border-gray-200">
         <Card className="max-w-md mx-auto">
@@ -135,21 +142,21 @@ const Quiz: React.FC<QuizProps> = ({ quizText, onRegenerateQuiz }) => {
           </CardHeader>
           <CardContent className="text-center space-y-4">
             <div className="text-4xl font-bold text-blue-600">
-              {score}/{totalQuestions}
+              {score}%
             </div>
             <p className="text-gray-600">
-              You answered {score} out of {totalQuestions} questions correctly!
+              Your overall score based on the quality and accuracy of your answers.
             </p>
             <div className="w-full bg-gray-200 rounded-full h-3">
               <div 
                 className="bg-gradient-to-r from-blue-600 to-purple-600 h-3 rounded-full transition-all duration-500"
-                style={{ width: `${(score / totalQuestions) * 100}%` }}
+                style={{ width: `${score}%` }}
               ></div>
             </div>
             <p className="text-sm text-gray-500">
-              {score / totalQuestions >= 0.8 ? 'Excellent work! 🎉' : 
-               score / totalQuestions >= 0.6 ? 'Good job! 👍' :
-               score / totalQuestions >= 0.4 ? 'Not bad, keep practicing! 📚' :
+              {score >= 80 ? 'Excellent work! 🎉' : 
+               score >= 60 ? 'Good job! 👍' :
+               score >= 40 ? 'Not bad, keep practicing! 📚' :
                'Keep studying and try again! 💪'}
             </p>
             <Button 
@@ -163,36 +170,34 @@ const Quiz: React.FC<QuizProps> = ({ quizText, onRegenerateQuiz }) => {
 
         {/* Detailed Results */}
         <div className="mt-6 space-y-4">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Detailed Results:</h3>
-          {questions.map((question, questionIndex) => {
-            const userAnswer = userAnswers[questionIndex];
-            const isCorrect = userAnswer === question.correctIndex;
-            
-            return (
-              <Card key={questionIndex} className={`border-l-4 ${isCorrect ? 'border-l-green-500' : 'border-l-red-500'}`}>
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    {isCorrect ? (
-                      <CheckCircle className="w-5 h-5 text-green-500 mt-1 flex-shrink-0" />
-                    ) : (
-                      <XCircle className="w-5 h-5 text-red-500 mt-1 flex-shrink-0" />
-                    )}
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-800 mb-2">{question.question}</p>
-                      <p className="text-sm text-gray-600">
-                        <span className="font-medium">Your answer:</span> {userAnswer !== undefined ? question.answers[userAnswer] : 'No answer selected'}
-                      </p>
-                      {!isCorrect && (
-                        <p className="text-sm text-green-600">
-                          <span className="font-medium">Correct answer:</span> {question.originalCorrectAnswer}
-                        </p>
-                      )}
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Detailed Feedback:</h3>
+          {evaluationResults.map((result, index) => (
+            <Card key={index} className={`border-l-4 ${result.score >= 70 ? 'border-l-green-500' : result.score >= 40 ? 'border-l-yellow-500' : 'border-l-red-500'}`}>
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  {result.score >= 70 ? (
+                    <CheckCircle className="w-5 h-5 text-green-500 mt-1 flex-shrink-0" />
+                  ) : (
+                    <XCircle className="w-5 h-5 text-red-500 mt-1 flex-shrink-0" />
+                  )}
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-800 mb-2">{questions[result.questionIndex].question}</p>
+                    <div className="mb-2">
+                      <span className="font-medium text-sm text-gray-600">Your answer:</span>
+                      <p className="text-sm text-gray-700 mt-1 p-2 bg-gray-50 rounded">{result.userAnswer}</p>
+                    </div>
+                    <div className="mb-2">
+                      <span className="font-medium text-sm text-gray-600">Score: {result.score}%</span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-sm text-gray-600">Feedback:</span>
+                      <p className="text-sm text-gray-700 mt-1">{result.feedback}</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     );
@@ -203,44 +208,43 @@ const Quiz: React.FC<QuizProps> = ({ quizText, onRegenerateQuiz }) => {
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold text-gray-800">Interactive Quiz</h3>
         <div className="text-sm text-gray-600">
-          {Object.keys(userAnswers).length}/{totalQuestions} answered
+          {Object.values(userAnswers).filter(answer => answer.trim().length > 0).length}/{totalQuestions} answered
         </div>
       </div>
       
       <div className="space-y-6">
         {questions.map((question, questionIndex) => (
           <Card key={questionIndex} className="p-4">
-            <h4 className="font-medium text-gray-800 mb-4">{question.question}</h4>
-            <RadioGroup
-              value={userAnswers[questionIndex]?.toString() || ""}
-              onValueChange={(value) => handleAnswerChange(questionIndex, parseInt(value))}
-            >
-              {question.answers.map((answer, answerIndex) => (
-                <div key={answerIndex} className="flex items-center space-x-2">
-                  <RadioGroupItem
-                    value={answerIndex.toString()}
-                    id={`q${questionIndex}-a${answerIndex}`}
-                  />
-                  <Label 
-                    htmlFor={`q${questionIndex}-a${answerIndex}`}
-                    className="cursor-pointer flex-1 py-2"
-                  >
-                    {answer}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
+            <div className="space-y-4">
+              <Label htmlFor={`question-${questionIndex}`} className="font-medium text-gray-800 block">
+                {question.question}
+              </Label>
+              <Textarea
+                id={`question-${questionIndex}`}
+                placeholder="Enter your answer here..."
+                value={userAnswers[questionIndex] || ''}
+                onChange={(e) => handleAnswerChange(questionIndex, e.target.value)}
+                className="min-h-[100px] resize-none"
+              />
+            </div>
           </Card>
         ))}
       </div>
 
       <div className="flex justify-center mt-6">
         <Button
-          onClick={handleCheckScore}
-          disabled={!allQuestionsAnswered}
+          onClick={handleSubmitForEvaluation}
+          disabled={!allQuestionsAnswered || isEvaluating}
           className="px-8 py-3 text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:transform-none disabled:hover:shadow-lg"
         >
-          Check Score ({Object.keys(userAnswers).length}/{totalQuestions})
+          {isEvaluating ? (
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              Evaluating...
+            </div>
+          ) : (
+            <>Submit for Evaluation ({Object.values(userAnswers).filter(answer => answer.trim().length > 0).length}/{totalQuestions})</>
+          )}
         </Button>
       </div>
     </div>
