@@ -150,13 +150,13 @@ const Index = () => {
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="answers" id="answers-mode" />
                         <Label htmlFor="answers-mode" className="text-sm font-medium leading-none cursor-pointer">
-                          Include answers with questions
+                          Questions and answers in text format
                         </Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="only" id="only-mode" />
                         <Label htmlFor="only-mode" className="text-sm font-medium leading-none cursor-pointer">
-                          Only questions
+                          Questions in text format
                         </Label>
                       </div>
                     </RadioGroup>
