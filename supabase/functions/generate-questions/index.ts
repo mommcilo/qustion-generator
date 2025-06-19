@@ -58,7 +58,7 @@ Format your response as a clean numbered list. Make sure questions are clear, sp
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4o',
         messages: [
           { 
             role: 'system', 
