@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -139,7 +138,6 @@ const Index = () => {
                 <div className="space-y-4">
                   
                   <div>
-                    <Label className="text-sm font-medium leading-none mb-3 block">Question Type:</Label>
                     <RadioGroup value={questionMode} onValueChange={setQuestionMode} className="space-y-2">
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="quiz" id="quiz-mode" />
