@@ -35,87 +35,127 @@ serve(async (req) => {
     const difficultyGuidance = {
       'beginner': {
         description: 'beginner level',
-        instructions: 'Focus on basic facts, definitions, and simple concepts. Questions should test fundamental understanding and recall of key information. Use clear, simple language.'
+        instructions: 'Focus on basic facts, definitions, and simple concepts. Questions should test fundamental understanding and recall of key information. Use clear, simple language.',
+        wrongAnswers: 'Create wrong answers that are related to the topic but represent basic misconceptions or confused similar concepts.'
       },
       'intermediate': {
         description: 'intermediate level', 
-        instructions: 'Focus on understanding relationships, applying concepts, and making connections. Questions should test comprehension and ability to use knowledge in context.'
+        instructions: 'Focus on understanding relationships, applying concepts, and making connections. Questions should test comprehension and ability to use knowledge in context.',
+        wrongAnswers: 'Create wrong answers that show partial understanding but miss key details, or confuse related but distinct concepts.'
       },
       'hard': {
         description: 'advanced level',
-        instructions: 'Focus on analysis, evaluation, synthesis, and critical thinking. Questions should test deep understanding, ability to compare/contrast, draw conclusions, and apply knowledge to new situations.'
+        instructions: 'Focus on analysis, evaluation, synthesis, and critical thinking. Questions should test deep understanding, ability to compare/contrast, draw conclusions, and apply knowledge to new situations.',
+        wrongAnswers: 'Create sophisticated wrong answers that demonstrate common expert-level misconceptions or represent plausible but incorrect advanced interpretations.'
       }
     };
 
     const currentDifficulty = difficultyGuidance[difficulty] || difficultyGuidance['intermediate'];
 
-    // Build enhanced system prompt
+    // Build enhanced system prompt with focus on variety and quality
     let systemPrompt = `You are an expert educator creating high-quality ${currentDifficulty.description} questions based on provided content.
 
-QUALITY REQUIREMENTS:
+CRITICAL QUALITY REQUIREMENTS:
 - Questions must be directly relevant to the provided content
-- Each question should test understanding, not just memorization
-- Use clear, unambiguous language
+- Each question should test genuine understanding, not just memorization
+- Use clear, unambiguous language that has one definitive correct answer
 - Avoid trick questions or overly complex wording
-- Questions should have definitive, factual answers
+- Questions should cover different aspects and angles of the content
 - ${currentDifficulty.instructions}
 
+VARIETY AND UNIQUENESS:
+- Focus on different themes, concepts, and details from the content
+- Use varied question types (what, how, why, when, which, etc.)
+- Ask about different levels of information (main concepts, specific details, relationships, implications)
+- Approach the same topic from multiple angles (causes, effects, comparisons, applications)
+- Vary the cognitive level required (recall, comprehension, application, analysis)
+
 CONTENT ANALYSIS:
-Analyze the provided text and create exactly 10 questions that cover the most important concepts, facts, and ideas presented.`;
+Analyze the provided text thoroughly and create exactly 10 questions that:
+1. Cover the most important concepts AND specific details
+2. Test different aspects of understanding
+3. Represent various difficulty levels within the chosen category
+4. Focus on different parts of the content (beginning, middle, end)
+5. Include both broad concepts and specific facts`;
 
     if (takeQuiz) {
       systemPrompt += `
 
-QUIZ FORMAT REQUIREMENTS:
+QUIZ FORMAT WITH HIGH-QUALITY WRONG ANSWERS:
 - For each question, provide exactly 4 multiple choice options labeled a), b), c), d)
 - The FIRST option (a) must ALWAYS be the correct answer
-- Incorrect options should be plausible but clearly wrong to someone who understands the content
-- Avoid obviously incorrect options or joke answers
-- Do not use "All of the above" or "None of the above" options
-- Make sure incorrect options are related to the topic but factually incorrect
+- CRITICAL: Wrong answers must be sophisticated and plausible
 
-EXAMPLE FORMAT:
-1. [Clear, specific question about the content]
-a) [Correct answer - factually accurate and complete]
-b) [Plausible but incorrect option]
-c) [Plausible but incorrect option] 
-d) [Plausible but incorrect option]`;
+WRONG ANSWER CREATION RULES:
+${currentDifficulty.wrongAnswers}
+
+SPECIFIC WRONG ANSWER STRATEGIES:
+- Use information that IS mentioned in the text but in a different context
+- Include common misconceptions someone might have about the topic
+- Mix correct elements with one key incorrect detail
+- Use terminology from the content but in wrong combinations
+- Reference related but distinct concepts that could be confused
+- Include numbers, dates, or facts that are close but not exact
+- NEVER use obviously silly or completely unrelated options
+- NEVER use "All of the above" or "None of the above"
+
+EXAMPLE OF GOOD VS BAD WRONG ANSWERS:
+❌ BAD: If the topic is about photosynthesis, don't use "Unicorns eat rainbows"
+✅ GOOD: If correct answer is "chloroplasts," wrong answers could be "mitochondria," "ribosomes," or "vacuoles"
+
+QUIZ FORMAT:
+1. [Specific, clear question testing understanding]
+a) [Correct answer - complete and accurate]
+b) [Plausible wrong answer using related concepts or common misconceptions]
+c) [Another sophisticated wrong answer that someone might reasonably choose]
+d) [Third wrong answer that demonstrates partial knowledge but key error]`;
     } else if (includeAnswers) {
       systemPrompt += `
 
 QUESTION + ANSWER FORMAT:
-- Provide clear, specific questions
+- Provide clear, specific questions that test different aspects of understanding
 - Follow each question with a comprehensive answer
-- Answers should explain the concept thoroughly
-- Include relevant details and context from the source material
+- Answers should explain the concept thoroughly with context
+- Include relevant details and examples from the source material
+- Vary question types to cover breadth and depth
 
 EXAMPLE FORMAT:
-1. [Clear, specific question]
-Answer: [Detailed, comprehensive explanation based on the content]`;
+1. [Clear, specific question focusing on main concept]
+Answer: [Detailed explanation with context and supporting details]
+
+2. [Question about specific detail or application]
+Answer: [Comprehensive response with examples from the content]`;
     } else {
       systemPrompt += `
 
 QUESTION-ONLY FORMAT:
 - Provide clear, specific questions that can be answered based on the content
 - Questions should be self-contained and understandable
-- Focus on the most important aspects of the content
-- Ensure questions test genuine understanding
+- Cover both main themes and important details
+- Use varied question structures and approaches
+- Ensure questions test genuine understanding at multiple levels
 
 EXAMPLE FORMAT:
-1. [Clear, specific question]
-2. [Clear, specific question]`;
+1. [Question about main concept or theme]
+2. [Question about specific detail or fact]
+3. [Question about relationship or process]
+4. [Question about implication or application]`;
     }
 
     // Add language instruction
     if (language !== 'English') {
       systemPrompt += `
 
-LANGUAGE: Generate all content in ${language}. Ensure proper grammar and natural phrasing in ${language}.`;
+LANGUAGE: Generate all content in ${language}. Ensure proper grammar, natural phrasing, and appropriate terminology in ${language}.`;
     }
 
     systemPrompt += `
 
-Remember: Quality over quantity. Each question should be valuable for learning and testing understanding of the content.`;
+FINAL REMINDER: 
+- Quality over quantity - each question should be valuable for learning
+- Wrong answers (if applicable) must be sophisticated and require actual knowledge to eliminate
+- Vary your approach to create diverse, engaging questions that thoroughly test understanding
+- Focus on making questions that truly assess comprehension rather than lucky guessing`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -132,11 +172,11 @@ Remember: Quality over quantity. Each question should be valuable for learning a
           },
           { 
             role: 'user', 
-            content: `Create questions based on this content:\n\n${text}` 
+            content: `Create diverse, high-quality questions based on this content. Focus on different aspects and use varied approaches:\n\n${text}` 
           }
         ],
-        temperature: 0.3, // Lower temperature for more consistent, focused output
-        max_tokens: 1500, // Increased for more detailed responses
+        temperature: 0.7, // Increased for more variety while maintaining quality
+        max_tokens: 2000, // Increased for more detailed responses
       }),
     });
 
