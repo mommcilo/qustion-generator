@@ -31,8 +31,17 @@ serve(async (req) => {
     console.log('Language:', language);
     console.log('Difficulty:', difficulty);
 
+    // Map difficulty levels to descriptions for the prompt
+    const difficultyDescriptions = {
+      'beginner': 'easy, basic level questions suitable for beginners',
+      'intermediate': 'medium difficulty questions for intermediate level',
+      'hard': 'challenging, advanced level questions for experts'
+    };
+
+    const difficultyDescription = difficultyDescriptions[difficulty] || difficultyDescriptions['intermediate'];
+
     // Dynamic prompt based on options
-    let basePrompt = `Write 10 ${difficulty} questions about: {replaceWithUserInput}. Questions should be diverse, useful for quiz or discussion.`;
+    let basePrompt = `The application has 3 levels of difficulty and this request wants to generate ${difficultyDescription}. Write 10 questions about: {replaceWithUserInput}. Questions should be diverse, useful for quiz or discussion.`;
     
     let answersPrompt = '';
     let quizPrompt = '';
