@@ -2,9 +2,9 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Sparkles, Copy, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
@@ -12,20 +12,16 @@ import Quiz from '@/components/Quiz';
 
 const Index = () => {
   const [inputText, setInputText] = useState('');
-  const [includeAnswers, setIncludeAnswers] = useState(false);
-  const [takeQuiz, setTakeQuiz] = useState(false);
+  const [questionMode, setQuestionMode] = useState('quiz'); // 'quiz', 'answers', 'only'
   const [selectedLanguage, setSelectedLanguage] = useState('English');
   const [difficultyLevel, setDifficultyLevel] = useState('intermediate');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedQuestions, setGeneratedQuestions] = useState('');
   const [hasCopied, setHasCopied] = useState(false);
 
-  const handleTakeQuizChange = (checked: boolean) => {
-    setTakeQuiz(checked);
-    if (checked) {
-      setIncludeAnswers(false);
-    }
-  };
+  // Derived values for backward compatibility
+  const includeAnswers = questionMode === 'answers';
+  const takeQuiz = questionMode === 'quiz';
 
   const handleGenerate = async () => {
     if (!inputText.trim()) {
@@ -40,6 +36,7 @@ const Index = () => {
     setIsGenerating(true);
     setGeneratedQuestions('');
     console.log('Generating questions for:', inputText);
+    console.log('Question mode:', questionMode);
     console.log('Include answers:', includeAnswers);
     console.log('Take quiz:', takeQuiz);
     console.log('Selected language:', selectedLanguage);
@@ -57,9 +54,10 @@ const Index = () => {
 
       if (data?.questions) {
         setGeneratedQuestions(data.questions);
+        const modeText = questionMode === 'quiz' ? ' for quiz' : questionMode === 'answers' ? ' with answers' : '';
         toast({
           title: "Success!",
-          description: `${difficultyLevel.charAt(0).toUpperCase() + difficultyLevel.slice(1)} questions${includeAnswers ? ' with answers' : ''}${takeQuiz ? ' for quiz' : ''} generated successfully in ${selectedLanguage}!`,
+          description: `${difficultyLevel.charAt(0).toUpperCase() + difficultyLevel.slice(1)} questions${modeText} generated successfully in ${selectedLanguage}!`,
         });
       } else {
         throw new Error('No questions generated');
@@ -140,30 +138,28 @@ const Index = () => {
                 <h3 className="text-md font-semibold text-gray-700 mb-3">Generation Options</h3>
                 <div className="space-y-4">
                   
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="include-answers"
-                      checked={includeAnswers}
-                      disabled={takeQuiz}
-                      onCheckedChange={(checked) => setIncludeAnswers(checked === true)}
-                    />
-                    <Label 
-                      htmlFor="include-answers" 
-                      className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${takeQuiz ? 'opacity-50' : ''}`}
-                    >
-                      Include answers with questions
-                    </Label>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="take-quiz"
-                      checked={takeQuiz}
-                      onCheckedChange={(checked) => handleTakeQuizChange(checked === true)}
-                    />
-                    <Label htmlFor="take-quiz" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                      Take a quiz
-                    </Label>
+                  <div>
+                    <Label className="text-sm font-medium leading-none mb-3 block">Question Type:</Label>
+                    <RadioGroup value={questionMode} onValueChange={setQuestionMode} className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="quiz" id="quiz-mode" />
+                        <Label htmlFor="quiz-mode" className="text-sm font-medium leading-none cursor-pointer">
+                          Take a quiz
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="answers" id="answers-mode" />
+                        <Label htmlFor="answers-mode" className="text-sm font-medium leading-none cursor-pointer">
+                          Include answers with questions
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="only" id="only-mode" />
+                        <Label htmlFor="only-mode" className="text-sm font-medium leading-none cursor-pointer">
+                          Only questions
+                        </Label>
+                      </div>
+                    </RadioGroup>
                   </div>
                   
                   <div className="flex items-center space-x-2">
