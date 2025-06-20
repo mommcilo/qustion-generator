@@ -126,7 +126,7 @@ const Index = () => {
                 </label>
                 <Textarea
                   id="input-text"
-                  placeholder="Paste your text content here. QGen will analyze it and generate relevant questions..."
+                  placeholder="World Cup 2022&#10;Senior Java Developer Interview Questions&#10;WWII&#10;Gravity"
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   className="min-h-[300px] resize-none text-base leading-relaxed border-2 border-gray-200 focus:border-blue-500 transition-colors rounded-xl"
