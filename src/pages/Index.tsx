@@ -122,7 +122,7 @@ const Index = () => {
             <div className="space-y-6">
               <div>
                 <label htmlFor="input-text" className="block text-lg font-semibold text-gray-700 mb-3">
-                  Enter your text to generate questions
+                  Enter something about the topic you want to study
                 </label>
                 <Textarea
                   id="input-text"
