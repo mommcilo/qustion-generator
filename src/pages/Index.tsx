@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -129,6 +128,7 @@ const Index = () => {
                   id="input-text"
                   placeholder={`Swan Lake
 World Cup 2022
+Feminism
 Senior Java Developer Interview Questions
 WWII
 Gravity`}
