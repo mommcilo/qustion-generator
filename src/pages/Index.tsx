@@ -126,7 +126,10 @@ const Index = () => {
                 </label>
                 <Textarea
                   id="input-text"
-                  placeholder="World Cup 2022&#10;Senior Java Developer Interview Questions&#10;WWII&#10;Gravity"
+                  placeholder={`World Cup 2022
+Senior Java Developer Interview Questions
+WWII
+Gravity`}
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   className="min-h-[300px] resize-none text-base leading-relaxed border-2 border-gray-200 focus:border-blue-500 transition-colors rounded-xl"
