@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -126,7 +127,11 @@ const Index = () => {
                 </label>
                 <Textarea
                   id="input-text"
-                  placeholder={`Swan Lake&#13;&#10;World Cup 2022&#13;&#10;Senior Java Developer Interview Questions&#13;&#10;WWII&#13;&#10;Gravity`}
+                  placeholder={`Swan Lake
+World Cup 2022
+Senior Java Developer Interview Questions
+WWII
+Gravity`}
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   className="min-h-[300px] resize-none text-base leading-relaxed border-2 border-gray-200 focus:border-blue-500 transition-colors rounded-xl"
